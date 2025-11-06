@@ -1,0 +1,11 @@
+streamlit
+pandas
+openpyxl
+xlrd
+sqlalchemy
+python-dotenv
+langchain
+langchain-groq
+groq
+mysql-connector-python
+numpy
