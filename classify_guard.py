@@ -3,7 +3,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from langchain_groq import ChatGroq
-from langchain.sql_database import SQLDatabase
+from langchain_community.utilities import SQLDatabase
 import json
 from decimal import Decimal
 from dotenv import load_dotenv
@@ -944,4 +944,5 @@ elif page == "Chat with Database":
                 except Exception as e:
                     error_msg = f"An unexpected error occurred: {str(e)}"
                     st.error(error_msg)
+
                     st.session_state.chat_messages.append({'role':'assistant','content':error_msg})
