@@ -8,4 +8,5 @@ langchain
 langchain-groq
 groq
 mysql-connector-python
+langchain-community
 numpy
