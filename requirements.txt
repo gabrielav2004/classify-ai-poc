@@ -6,3 +6,5 @@ langchain-groq
 python-dotenv 
 openpyxl 
 pydantic
+langchain-community
+nicegui
