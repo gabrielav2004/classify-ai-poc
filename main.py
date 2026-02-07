@@ -32,6 +32,8 @@ load_dotenv()
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
 # ==================== CONSTANTS ====================
+QUERY_GEN_MODEL='llama-3.1-8b-instant'
+SUMMARIZER_MODEL='llama-3.1-8b-instant'
 LOCAL_DB = 'USE_LOCALDB'
 MYSQL = 'USE_MYSQL'
 
@@ -351,93 +353,200 @@ def create_stat_card(icon: str, value: str, label: str, color: str = 'blue'):
 
 @ui.page('/')
 def login_page():
-    """Enhanced login page"""
+    """Professional Blue Theme Login Page with Full Blue Background"""
     if app_state.authenticated:
         ui.navigate.to('/home')
         return
     
-    ui.colors(primary='#4F46E5')
+    # Set primary color to vibrant blue
+    ui.colors(primary='#2563eb', secondary='#3b82f6', accent='#1e293b')
     
-    with ui.column().classes('w-full min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4'):
-        with ui.card().classes('w-full max-w-md shadow-2xl border-0'):
-            # Logo and title
-            with ui.column().classes('items-center mb-6'):
-                ui.label('🎓').classes('text-6xl mb-2')
-                ui.label('Classify AI').classes('text-4xl font-bold text-indigo-600')
-                ui.label('School Data Management System').classes('text-center text-gray-600')
+    # Add custom CSS to fix margins and ensure full blue background
+    ui.add_head_html('''
+        <style>
+            /* AGGRESSIVE CSS RESET */
+            * {
+                margin: 0 !important;
+                box-sizing: border-box !important;
+            }
             
-            ui.separator()
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                overflow: hidden !important;
+                background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+            }
             
+            #__nuxt {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100vw !important;
+                min-height: 100vh !important;
+                background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+            }
+            
+            /* Override any NiceGUI container styles */
+            .nicegui-container {
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100vw !important;
+            }
+            
+            /* Force full blue background */
+            .full-blue-force {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: auto !important;
+            }
+        </style>
+    ''')
+    
+    # Main container with FULL blue background - using FIXED positioning
+    with ui.column().classes('''
+        fixed top-0 left-0 right-0 bottom-0
+        w-screen h-screen
+        items-center justify-center
+        overflow-auto
+        full-blue-force
+    '''):
+        # Logo and title - Centered above the card
+        with ui.column().classes('items-center mb-10 text-center px-4 pt-8'):
+            ui.label('🎓').classes('text-7xl mb-3 text-white drop-shadow-lg')
+            ui.label('Classify AI').classes('text-5xl font-bold text-white mb-2 drop-shadow-md')
+            ui.label('School Data Management System').classes('text-xl text-white/90')
+        
+        # Login card - Clean white with subtle shadow
+        with ui.card().classes('''
+            w-full max-w-md 
+            bg-white 
+            border border-blue-200
+            shadow-2xl
+            rounded-xl
+            hover:shadow-3xl
+            transition-shadow duration-300
+            mx-4 mb-8
+        '''):
             # Login form
-            with ui.column().classes('gap-4 mt-6'):
-                username_input = ui.input(
-                    label='Username', 
-                    placeholder='Enter your username'
-                ).classes('w-full').props('outlined dense')
+            with ui.column().classes('gap-5 p-8'):
+                ui.label('Sign In to Your Account').classes('text-2xl font-bold text-blue-900 text-center')
+                ui.label('Enter your credentials to access the system').classes('text-center text-gray-600 mb-2')
                 
-                password_input = ui.input(
-                    label='Password', 
-                    password=True, 
-                    password_toggle_button=True,
-                    placeholder='Enter your password'
-                ).classes('w-full').props('outlined dense')
+                # Username input with proper icon setup
+                with ui.row().classes('w-full items-center'):
+                    ui.icon('person').classes('text-gray-500 mr-2 text-xl')
+                    username_input = ui.input(
+                        label='Username', 
+                        placeholder='Enter your username'
+                    ).classes('w-full').props('outlined dense')
                 
-                login_button = ui.button('Login', on_click=lambda: None).classes('w-full bg-indigo-600 text-white h-12 text-lg')
-                login_button.props('unelevated')
-            
-            async def handle_login():
-                """Handle login with validation"""
-                username = username_input.value
-                password = password_input.value
+                # Password input with proper icon setup
+                with ui.row().classes('w-full items-center mt-4'):
+                    ui.icon('lock').classes('text-gray-500 mr-2 text-xl')
+                    password_input = ui.input(
+                        label='Password', 
+                        password=True, 
+                        password_toggle_button=True,
+                        placeholder='Enter your password'
+                    ).classes('w-full').props('outlined dense')
                 
-                if not username or not password:
-                    ui.notify('Please enter username and password', type='warning', position='top')
-                    return
+                # Remember me and forgot password
+                with ui.row().classes('w-full justify-between items-center mt-4'):
+                    ui.checkbox('Remember me').classes('text-sm text-gray-600')
+                    ui.link('Forgot password?', '/forgot-password').classes('text-sm text-blue-600 hover:text-blue-800')
                 
-                # Disable button during login
-                login_button.props('loading')
-                await asyncio.sleep(0.3)  # Brief delay for UX
+                login_button = ui.button('Sign In', on_click=lambda: None).classes('''
+                    w-full h-12 mt-6
+                    bg-gradient-to-r from-blue-600 to-blue-700
+                    hover:from-blue-700 hover:to-blue-800
+                    text-white font-semibold text-lg
+                    rounded-lg
+                    transition-all duration-300
+                    shadow-md hover:shadow-lg
+                ''')
                 
-                if username in USERS and USERS[username]["password"] == password:
-                    user_data = USERS[username]
-                    app_state.user = {
-                        "username": username,
-                        "role": user_data["role"],
-                        "permissions": user_data["permissions"]
-                    }
-                    app_state.authenticated = True
-                    ui.notify(f'Welcome back, {user_data["role"]}!', type='positive', position='top')
+                async def handle_login():
+                    """Handle login with validation"""
+                    username = username_input.value
+                    password = password_input.value
+                    
+                    if not username or not password:
+                        ui.notify('Please enter username and password', type='warning', position='top')
+                        return
+                    
+                    # Disable button during login
+                    login_button.props('loading')
                     await asyncio.sleep(0.3)
-                    ui.navigate.to('/home')
-                else:
-                    login_button.props(remove='loading')
-                    ui.notify('Invalid username or password', type='negative', position='top')
-                    password_input.value = ''
-            
-            login_button.on_click(handle_login)
-            password_input.on('keydown.enter', handle_login)
-            
-            ui.separator().classes('my-6')
-            
-            # Demo credentials
-            with ui.expansion('🧪 Demo Credentials', icon='info').classes('w-full'):
-                credentials = [
-                    ('👑 Admin', 'admin', 'admin123', 'Full system access'),
-                    ('👨‍🏫 Teacher', 'teacher', 'teacher123', 'Read-only access'),
-                    ('📝 Data Entry', 'data_entry', 'data123', 'Upload & view data'),
-                    ('👁️ Viewer', 'viewer', 'view123', 'Chat-only access')
-                ]
+                    
+                    if username in USERS and USERS[username]["password"] == password:
+                        user_data = USERS[username]
+                        app_state.user = {
+                            "username": username,
+                            "role": user_data["role"],
+                            "permissions": user_data["permissions"]
+                        }
+                        app_state.authenticated = True
+                        ui.notify(f'Welcome back, {user_data["role"]}!', type='positive', position='top')
+                        await asyncio.sleep(0.3)
+                        ui.navigate.to('/home')
+                    else:
+                        login_button.props(remove='loading')
+                        ui.notify('Invalid username or password', type='negative', position='top')
+                        password_input.value = ''
                 
-                with ui.column().classes('gap-3 pt-2'):
-                    for emoji, user, pwd, desc in credentials:
-                        with ui.card().classes('w-full bg-gray-50 border border-gray-200'):
-                            with ui.row().classes('items-center justify-between w-full'):
-                                with ui.column().classes('gap-1'):
-                                    ui.label(f'{emoji} {user}').classes('font-semibold text-gray-800')
-                                    ui.label(desc).classes('text-xs text-gray-600')
-                                with ui.column().classes('items-end gap-0'):
-                                    ui.label(user).classes('text-sm font-mono text-blue-600')
-                                    ui.label(pwd).classes('text-sm font-mono text-gray-500')
+                login_button.on_click(handle_login)
+                password_input.on('keydown.enter', handle_login)
+                
+                # Divider
+                with ui.row().classes('w-full items-center my-4'):
+                    ui.element('div').classes('flex-1 h-px bg-blue-200')
+                    ui.label('or').classes('px-4 text-sm text-blue-500')
+                    ui.element('div').classes('flex-1 h-px bg-blue-200')
+                
+                # Demo credentials
+                with ui.expansion('👥 Demo Credentials', value=False).classes('w-full'):
+                    with ui.column().classes('gap-3 pt-2'):
+                        credentials = [
+                            ('👑 Admin', 'admin', 'admin123', 'Full system access'),
+                            ('👨‍🏫 Teacher', 'teacher', 'teacher123', 'Read-only access'),
+                            ('📝 Data Entry', 'data_entry', 'data123', 'Upload & view data'),
+                            ('👁️ Viewer', 'viewer', 'view123', 'Chat-only access')
+                        ]
+                        
+                        for emoji, user, pwd, desc in credentials:
+                            with ui.card().classes('''
+                                w-full 
+                                bg-blue-50 
+                                border border-blue-200
+                                hover:bg-blue-100
+                                transition-colors duration-200
+                                cursor-pointer
+                            ''').on('click', lambda u=user, p=pwd: (
+                                username_input.set_value(u),
+                                password_input.set_value(p)
+                            )):
+                                with ui.row().classes('items-center justify-between w-full p-3'):
+                                    with ui.column().classes('gap-0.5'):
+                                        ui.label(f'{emoji} {user}').classes('font-medium text-blue-900')
+                                        ui.label(desc).classes('text-xs text-blue-600')
+                                    with ui.column().classes('items-end gap-0'):
+                                        ui.label(f'👤 {user}').classes('text-sm font-mono text-blue-700')
+                                        ui.label(f'🔑 {pwd}').classes('text-sm font-mono text-blue-500')
+        
+        # Footer
+        with ui.row().classes('mt-8 text-sm text-white/80 px-4 text-center pb-8'):
+            ui.label('© 2024 Classify AI. All rights reserved.')
+            ui.link('Privacy Policy', '/privacy').classes('mx-2 text-white hover:text-blue-100 hover:underline')
+            ui.link('Terms of Service', '/terms').classes('text-white hover:  text-blue-100 hover:underline')
 
 @ui.page('/home')
 def home_page():
@@ -762,10 +871,10 @@ def database_page():
                     dialog.open()
                 
                 ui.button('🗑️ Clear Database', on_click=clear_database).props('unelevated color=negative')
-
+                
 @ui.page('/chat')
 def chat_page():
-    """Enhanced chat interface"""
+    """Chat interface with real-time validation steps"""
     if not check_authenticated():
         return
     
@@ -781,12 +890,10 @@ def chat_page():
     
     # Initialize chat messages if empty
     if not app_state.chat_messages:
-        app_state.chat_messages = [
-            {
-                'role': 'assistant',
-                'content': f'Hello {app_state.user["username"]}! 👋\n\nI\'m your AI assistant for querying school data. Ask me anything in plain English, and I\'ll help you get the information you need.\n\n**Example queries:**\n• How many students are in the database?\n• Show me all students with GPA above 3.5\n• List students by grade level\n• What is the average attendance rate?'
-            }
-        ]
+        app_state.chat_messages = [{
+            'role': 'assistant',
+            'content': 'Hello! I\'m Classify AI. Ask me anything about your school data in plain English, and I\'ll help you retrieve the information you need.'
+        }]
     
     # Main container with flex layout
     with ui.column().classes('w-full h-screen flex flex-col'):
@@ -805,8 +912,58 @@ def chat_page():
                                 with ui.avatar(icon='smart_toy', color='primary').classes('mt-1'):
                                     pass
                                 with ui.card().classes('flex-1 bg-blue-50 border-l-4 border-blue-500 p-4'):
-                                    ui.markdown(msg['content']).classes('text-gray-800')
+                                    # Check if this is a validation message (has validation_steps)
+                                    if isinstance(msg.get('content'), dict) and 'validation_steps' in msg['content']:
+                                        validation_data = msg['content']
+                                        ui.markdown('### 🔒 **Validating Request...**').classes('text-gray-800 mb-3')
+                                        
+                                        # Render each validation step as expandable section
+                                        for i, step in enumerate(validation_data['validation_steps']):
+                                            step_name = step['name']
+                                            step_status = step['status']
+                                            step_details = step.get('details', '')
+                                            
+                                            # Color based on status
+                                            if step_status == 'completed':
+                                                border_color = 'border-green-200'
+                                                bg_color = 'bg-green-50'
+                                                icon = '✅'
+                                                expanded = (i == 0)  # First one expanded by default
+                                            elif step_status == 'processing':
+                                                border_color = 'border-yellow-200'
+                                                bg_color = 'bg-yellow-50'
+                                                icon = '⏳'
+                                                expanded = True
+                                            elif step_status == 'failed':
+                                                border_color = 'border-red-200'
+                                                bg_color = 'bg-red-50'
+                                                icon = '❌'
+                                                expanded = True
+                                            else:  # pending
+                                                border_color = 'border-gray-200'
+                                                bg_color = 'bg-gray-50'
+                                                icon = '⏱️'
+                                                expanded = False
+                                            
+                                            with ui.expansion(
+                                                f"{icon} {step_name}", 
+                                                value=expanded
+                                            ).classes(f'w-full mb-2 {border_color}').props('group'):
+                                                with ui.card().classes(f'{bg_color} border-0 shadow-none'):
+                                                    if step_details:
+                                                        ui.html(f'<div class="text-gray-700 p-2">{step_details}</div>')
+                                                    else:
+                                                        ui.label(f'Status: {step_status.capitalize()}').classes('text-gray-600 p-2')
+                                        
+                                        # Show overall status
+                                        if validation_data.get('overall_status'):
+                                            ui.markdown(f"\n**Overall Status:** {validation_data['overall_status']}").classes('mt-3 font-bold')
+                                        
+                                    else:
+                                        # Regular assistant message
+                                        ui.markdown(msg['content']).classes('text-gray-800')
                         else:
+                            # User message
                             with ui.row().classes('w-full gap-3 justify-end'):
                                 with ui.card().classes('flex-1 max-w-2xl bg-indigo-50 border-l-4 border-indigo-500 p-4'):
                                     ui.markdown(msg['content']).classes('text-gray-800')
@@ -816,7 +973,6 @@ def chat_page():
             # Initial render
             render_messages()
     
-    # FIXED: Moved footer outside the main column
     # Input area - fixed at bottom
     with ui.footer().classes('bg-white border-t border-gray-200 shadow-lg'):
         with ui.column().classes('w-full container mx-auto max-w-4xl p-4 gap-2'):
@@ -828,113 +984,9 @@ def chat_page():
                 send_button = ui.button('Send', icon='send').props('unelevated color=primary')
             
             ui.label('💡 Press Enter to send • Shift+Enter for new line').classes('text-xs text-gray-500')
-
-            async def process_query(user_msg: str):
-                """Async function to process the query with real-time status"""
-                # Create a status container
-                status_container = ui.column().classes('w-full border-l-4 border-blue-500 bg-blue-50 p-4 rounded-lg')
-                status_label = None
-                status_details = ui.column().classes('mt-2 space-y-1')
-                
-                with status_container:
-                    status_label = ui.label('🔒 Validating request...').classes('font-bold text-blue-700')
-                    with status_details:
-                        step1 = ui.label('🔍 Analyzing query intent...').classes('text-sm text-gray-600')
-                        step2 = ui.label('📝 Checking role permissions...').classes('text-sm text-gray-600')
-                        step3 = ui.label('🛡️ Validating SQL safety...').classes('text-sm text-gray-600')
-                
-                try:
-                    # Step 1: Get database URL
-                    if app_state.db_uri == LOCAL_DB:
-                        dbfilepath = (Path(__file__).parent / DB_PATH).absolute()
-                        db_url = f'sqlite:///{dbfilepath}'
-                    else:
-                        db_url = f'mysql+mysqlconnector://{app_state.mysql_user}:{app_state.mysql_pass}@{app_state.mysql_host}/{app_state.mysql_db}'
-                    
-                    # Step 2: Initialize LLM
-                    from langchain_groq import ChatGroq
-                    llm = ChatGroq(groq_api_key=GROQ_API_KEY, model_name='llama-3.1-8b-instant', streaming=False)
-                    
-                    # Step 3: Generate SQL (update status)
-                    step1.set_text('✅ Analyzing query intent...')
-                    await asyncio.sleep(0.3)  # Small delay for UX
-                    
-                    db = langchain_db(db_url)
-                    schema = infer_schema(db)
-                    sql_query = generate_sql_query(llm, user_msg, schema)
-                    
-                    # Step 4: Safety validation (update status)
-                    step2.set_text('✅ Checking role permissions...')
-                    await asyncio.sleep(0.3)
-                    
-                    user_role = app_state.user.get('role', 'Viewer')
-                    validation = safety_validator.validate_request(user_role, user_msg, sql_query)
-                    
-                    step3.set_text('✅ Validating SQL safety...')
-                    await asyncio.sleep(0.3)
-                    
-                    if validation['status'] != 'safe':
-                        # Update status to show failure
-                        status_label.set_text('❌ Validation Failed')
-                        status_container.classes(replace='border-red-500 bg-red-50')
-                        
-                        # Remove loading message
-                        app_state.chat_messages.pop()
-                        
-                        app_state.chat_messages.append({
-                            'role': 'assistant',
-                            'content': f'🚫 **Security Validation Failed**\n\n{validation["reason"]}\n\nPlease rephrase your query or contact an administrator if you believe this is an error.'
-                        })
-                        render_messages()
-                        
-                        # Clean up status container after delay
-                        await asyncio.sleep(2)
-                        status_container.set_visibility(False)
-                        return
-                    
-                    # Update status to show success
-                    status_label.set_text('✅ Validation Successful')
-                    status_container.classes(replace='border-green-500 bg-green-50')
-                    await asyncio.sleep(0.5)
-                    
-                    # Hide status and show execution spinner
-                    status_container.set_visibility(False)
-                    
-                    # Show execution spinner
-                    spinner_container = ui.column().classes('w-full border-l-4 border-purple-500 bg-purple-50 p-4 rounded-lg')
-                    with spinner_container:
-                        with ui.row().classes('items-center gap-2'):
-                            ui.spinner(size='lg', color='primary')
-                            ui.label('🔄 Executing query...').classes('font-bold text-purple-700')
-                    
-                    # Execute query
-                    result = run_query(sql_query, db_url)
-                    
-                    # Hide spinner
-                    spinner_container.set_visibility(False)
-                    
-                    # Continue with result processing...
-                    # ... (rest of your existing code)
-                    
-                except Exception as ex:
-                    # Handle errors with status updates
-                    if status_label:
-                        status_label.set_text('❌ Error Processing Query')
-                        status_container.classes(replace='border-red-500 bg-red-50')
-                        await asyncio.sleep(2)
-                        status_container.set_visibility(False)
-                    
-                    # Remove loading message
-                    app_state.chat_messages.pop()
-                    
-                    app_state.chat_messages.append({
-                        'role': 'assistant',
-                        'content': f'❌ **Error Processing Query**\n\n{str(ex)}\n\nPlease try rephrasing your question or contact support if the issue persists.'
-                    })
-                    render_messages()
             
-            async def send_message():
-                """Handle sending a message"""
+            def send_message():
+                """Handle sending a message - triggers async processing"""
                 user_msg = chat_input.value.strip()
                 if not user_msg:
                     return
@@ -949,116 +1001,242 @@ def chat_page():
                 })
                 render_messages()
                 
-                # Show loading indicator
+                # Start async processing with real-time updates
+                asyncio.create_task(process_query_with_real_time_updates(user_msg))
+            
+            async def process_query_with_real_time_updates(user_msg: str):
+                """Async function with real-time step updates"""
+                # Check if API key is available
+                if not GROQ_API_KEY:
+                    app_state.chat_messages.append({
+                        'role': 'assistant',
+                        'content': '❌ **Groq API Key not found in environment variables**\n\nPlease add `GROQ_API_KEY` to your `.env` file'
+                    })
+                    render_messages()
+                    return
+                
+                # Store the processing message index
+                processing_index = len(app_state.chat_messages)
+                
+                # Define only the first 3 validation steps
+                validation_steps = [
+                    {"name": "Analyzing query intent", "status": "pending", "details": ""},
+                    {"name": "Checking role permissions", "status": "pending", "details": ""},
+                    {"name": "Validating SQL safety", "status": "pending", "details": ""}
+                ]
+                
+                # Function to update validation status
+                def update_validation(current_step=None, step_details=""):
+                    """Update the validation message with current progress"""
+                    # Update all steps up to current_step as completed
+                    updated_steps = validation_steps.copy()
+                    
+                    if current_step is not None:
+                        for i in range(current_step):
+                            updated_steps[i]["status"] = "completed"
+                        updated_steps[current_step]["status"] = "processing"
+                        if step_details:
+                            updated_steps[current_step]["details"] = step_details
+                    
+                    # Create validation message
+                    validation_data = {
+                        "validation_steps": updated_steps,
+                        "overall_status": "Processing..." if current_step is not None else "Validation Complete",
+                    }
+                    
+                    app_state.chat_messages[processing_index] = {
+                        'role': 'assistant',
+                        'content': validation_data
+                    }
+                    render_messages()
+                
+                # Add initial processing message
                 app_state.chat_messages.append({
                     'role': 'assistant',
-                    'content': '⏳ **Processing your query...**\n\n✓ Analyzing request\n✓ Generating SQL\n✓ Validating security\n⏳ Executing query...'
+                    'content': {
+                        "validation_steps": validation_steps,
+                        "overall_status": "Starting validation...",
+                    }
                 })
                 render_messages()
                 
+                # Update with first step
+                update_validation(0, "Processing user query...")
+                await asyncio.sleep(0.3)
+                
                 try:
-                    # Get database URL
-                    if app_state.db_uri == LOCAL_DB:
-                        dbfilepath = (Path(__file__).parent / DB_PATH).absolute()
-                        db_url = f'sqlite:///{dbfilepath}'
-                    else:
-                        db_url = f'mysql+mysqlconnector://{app_state.mysql_user}:{app_state.mysql_pass}@{app_state.mysql_host}/{app_state.mysql_db}'
+                    # Step 1: Get database URL
+                    dbfilepath = (Path(__file__).parent / DB_PATH).absolute()
+                    db_url = f'sqlite:///{dbfilepath}'
                     
-                    # Initialize LLM
+                    update_validation(1, f"Database: {DB_PATH}")
+                    await asyncio.sleep(0.3)
+                    
+                    # Step 2: Initialize LLM and get schema
                     from langchain_groq import ChatGroq
-                    llm = ChatGroq(groq_api_key=GROQ_API_KEY, model_name='openai/gpt-oss-20b', streaming=False)
+                    query_llm = ChatGroq(groq_api_key=GROQ_API_KEY, model_name=QUERY_GEN_MODEL, streaming=False)
+                    summarizer_llm = ChatGroq(groq_api_key=GROQ_API_KEY, model_name=SUMMARIZER_MODEL, streaming=False)
+
                     
-                    # Generate SQL
                     db = langchain_db(db_url)
                     schema = infer_schema(db)
-                    sql_query = generate_sql_query(llm, user_msg, schema)
-                    print("check query", sql_query)
                     
-                    # Validate
+                    update_validation(2, "Ready for SQL generation")
+                    await asyncio.sleep(0.3)
+                    
+                    # Generate SQL query (this happens after validation)
+                    sql_query = generate_sql_query(query_llm, user_msg, schema)
+                    print("Generated SQL query:", sql_query)
+                    
+                    # Step 3: Safety validation
                     user_role = app_state.user.get('role', 'Viewer')
                     validation = safety_validator.validate_request(user_role, user_msg, sql_query)
                     
                     if validation['status'] != 'safe':
-                        # Remove loading message
-                        app_state.chat_messages.pop()
+                        # Mark previous steps as completed
+                        for i in range(2):
+                            validation_steps[i]["status"] = "completed"
+                        # Mark safety step as failed
+                        validation_steps[2]["status"] = "failed"
+                        validation_steps[2]["details"] = validation["reason"]
                         
+                        app_state.chat_messages[processing_index] = {
+                            'role': 'assistant',
+                            'content': {
+                                "validation_steps": validation_steps,
+                                "overall_status": "❌ Validation Failed",
+                            }
+                        }
+                        render_messages()
+                        
+                        # Add error message
+                        await asyncio.sleep(0.5)
                         app_state.chat_messages.append({
                             'role': 'assistant',
-                            'content': f'🚫 **Security Validation Failed**\n\n{validation["reason"]}\n\nPlease rephrase your query or contact an administrator if you believe this is an error.'
+                            'content': f'🚫 **Security Validation Failed**\n\n{validation["reason"]}\n\nPlease rephrase your query or contact an administrator.'
                         })
                         render_messages()
-
-                        asyncio.create_task(process_query(user_msg))
                         return
+                    
+                    # Mark all steps as completed successfully
+                    for step in validation_steps:
+                        step["status"] = "completed"
+                    
+                    validation_steps[2]["details"] = "Query validated as safe"
+                    
+                    app_state.chat_messages[processing_index] = {
+                        'role': 'assistant',
+                        'content': {
+                            "validation_steps": validation_steps,
+                            "overall_status": "✅ Validation Successful",
+                        }
+                    }
+                    render_messages()
+                    
+                    # Wait a moment before showing results
+                    await asyncio.sleep(0.5)
+                    
+                    # Show SQL generation message
+                    app_state.chat_messages.append({
+                        'role': 'assistant',
+                        'content': '⚡ **Generating SQL Query...**'
+                    })
+                    render_messages()
+                    
+                    await asyncio.sleep(0.5)
                     
                     # Execute query
                     result = run_query(sql_query, db_url)
                     
-                    # Generate summary
-                    if isinstance(result, str) and 'error' in result.lower():
-                        summary = f'❌ **Query Error**\n\n{result}'
-                    elif isinstance(result, list):
-                        if len(result) > 0:
-                            summary = summarize_result(llm, user_msg, sql_query, result)
-                            
-                            # Add results table
-                            summary += f'\n\n---\n\n**📊 Query Results ({len(result)} rows)**\n\n'
-                            
-                            if len(result) <= 10:
-                                # Show all results as markdown table
-                                cols = list(result[0].keys())
-                                summary += '| ' + ' | '.join(cols) + ' |\n'
-                                summary += '| ' + ' | '.join(['---'] * len(cols)) + ' |\n'
-                                for row in result:
-                                    summary += '| ' + ' | '.join([str(row.get(col, ''))[:30] for col in cols]) + ' |\n'
-                            else:
-                                summary += f'_Showing summary (total {len(result)} rows)_'
-                            
-                            if app_state.show_details:
-                                summary += f'\n\n**🔧 Technical Details**\n\n```sql\n{sql_query}\n```'
-                        else:
-                            summary = '📭 No results found for your query.'
-                    else:
-                        summary = f'✅ **Query Executed Successfully**\n\nResult: {result}'
-                    
-                    # Remove loading message
-                    app_state.chat_messages.pop()
-                    
-                    # Add response
+                    # Show execution message
                     app_state.chat_messages.append({
                         'role': 'assistant',
-                        'content': summary
+                        'content': '🔄 **Executing Database Query...**'
                     })
+                    render_messages()
+                    
+                    await asyncio.sleep(0.3)
+                    
+                    # Generate final response
+                    if isinstance(result, str) and 'error' in result.lower():
+                        final_result = f'❌ **Query Error**\n\n{result}'
+                    elif isinstance(result, list):
+                        if len(result) > 0:
+                            # Generate summary
+                            summary = summarize_result(summarizer_llm, user_msg, sql_query, result)
+                            final_result = summary
+                            
+                            # Add results table
+                            final_result += f'\n\n---\n\n**📊 Query Results ({len(result)} rows)**\n\n'
+                            
+                            if len(result) <= 10:
+                                cols = list(result[0].keys())
+                                final_result += '| ' + ' | '.join(cols) + ' |\n'
+                                final_result += '| ' + ' | '.join(['---'] * len(cols)) + ' |\n'
+                                for row in result:
+                                    final_result += '| ' + ' | '.join([str(row.get(col, ''))[:30] for col in cols]) + ' |\n'
+                            else:
+                                final_result += f'_Showing summary (total {len(result)} rows)_'
+                            
+                            if app_state.show_details:
+                                final_result += f'\n\n**🔧 Technical Details**\n\n```sql\n{sql_query}\n```'
+                        else:
+                            final_result = '📭 No results found for your query.'
+                    else:
+                        final_result = f'✅ **Query Executed Successfully**\n\nResult: {result}'
+                    
+                    # Replace the last message with final result
+                    app_state.chat_messages[-1] = {
+                        'role': 'assistant',
+                        'content': final_result
+                    }
                     render_messages()
                     
                 except ImportError as e:
-                    app_state.chat_messages.pop()
-                    app_state.chat_messages.append({
-                        'role': 'assistant',
-                        'content': f'❌ **Missing Dependency**\n\nPlease install required packages:\n\n```bash\npip install langchain-groq\n```'
-                    })
-                    render_messages()
-                except Exception as ex:
-                    # Remove loading message
-                    app_state.chat_messages.pop()
+                    validation_steps[0]["status"] = "failed"
+                    validation_steps[0]["details"] = str(e)
                     
+                    app_state.chat_messages[processing_index] = {
+                        'role': 'assistant',
+                        'content': {
+                            "validation_steps": validation_steps,
+                            "overall_status": "❌ Validation Failed",
+                        }
+                    }
+                    render_messages()
+                    
+                except Exception as ex:
+                    # Mark as failed at current step
+                    for step in validation_steps:
+                        if step["status"] == "processing":
+                            step["status"] = "failed"
+                            step["details"] = str(ex)
+                            break
+                    
+                    app_state.chat_messages[processing_index] = {
+                        'role': 'assistant',
+                        'content': {
+                            "validation_steps": validation_steps,
+                            "overall_status": "❌ Error Processing Query",
+                        }
+                    }
+                    render_messages()
+                    
+                    # Add error message
                     app_state.chat_messages.append({
                         'role': 'assistant',
-                        'content': f'❌ **Error Processing Query**\n\n{str(ex)}\n\nPlease try rephrasing your question or contact support if the issue persists.'
+                        'content': f'❌ **Error Processing Query**\n\n{str(ex)}\n\nPlease try rephrasing your question.'
                     })
                     render_messages()
             
-            async def handle_send():
-                await send_message()
-
             # Connect send button
-            send_button.on('click', handle_send)
+            send_button.on('click', send_message)
             
             # Handle Enter key
             def handle_enter():
                 if not chat_input.value.strip():
                     return
-                handle_send()
+                send_message()
             
             chat_input.on('keydown.enter', handle_enter)
 
