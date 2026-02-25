@@ -374,8 +374,8 @@ def login_page():
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 100vw !important;
-                height: 100vh !important;
-                overflow: hidden !important;
+                min-height: 100vh !important;
+                overflow-y: auto !important;
                 background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
             }
             
@@ -396,27 +396,23 @@ def login_page():
             
             /* Force full blue background */
             .full-blue-force {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: 0 !important;
+                position: relative !important;
                 width: 100vw !important;
-                height: 100vh !important;
+                min-height: 100vh !important;
                 background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                overflow: auto !important;
+                overflow-y: auto !important;
             }
         </style>
     ''')
     
     # Main container with FULL blue background - using FIXED positioning
     with ui.column().classes('''
-        fixed top-0 left-0 right-0 bottom-0
-        w-screen h-screen
+        relative
+        w-screen min-h-screen
         items-center justify-center
-        overflow-auto
+        py-8
         full-blue-force
     '''):
         # Logo and title - Centered above the card
