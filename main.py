@@ -243,7 +243,7 @@ USERS = {
 }
 
 # ==================== SAFETY VALIDATOR INITIALIZATION ====================
-SAFETY_MODEL_NAME = "meta-llama/llama-guard-4-12b"
+SAFETY_MODEL_NAME = "openai/gpt-oss-safeguard-20b"
 
 safety_validator = SafetyValidator(
     groq_api_key=GROQ_API_KEY,
